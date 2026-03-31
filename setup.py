@@ -11,8 +11,6 @@
 
     Do not edit the class manually.
 """  # noqa: E501
-
-
 from setuptools import setup, find_packages  # noqa: H301
 
 # To install the library, run the following
@@ -22,11 +20,11 @@ from setuptools import setup, find_packages  # noqa: H301
 # prerequisite: setuptools
 # http://pypi.python.org/pypi/setuptools
 NAME = "infobip-api-python-client"
-VERSION = "4.0.0"
-PYTHON_REQUIRES = ">=3.8"
+VERSION = "6.0.0"
+PYTHON_REQUIRES = ">= 3.9"
 REQUIRES = [
-    "urllib3 >= 1.25.3, < 2.1.0",
-    "python-dateutil",
+    "urllib3 >= 2.1.0, < 3.0.0",
+    "python-dateutil >= 2.8.2",
     "pydantic >= 2",
     "typing-extensions >= 4.7.1",
 ]

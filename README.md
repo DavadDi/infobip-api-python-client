@@ -3,6 +3,7 @@
 <img src="https://cdn-web.infobip.com/uploads/2023/01/Infobip-logo.svg" height="93px" alt="Infobip" />
 
 [![Pypi index](https://badgen.net/pypi/v/infobip-api-python-client)](https://pypi.org/project/infobip-api-python-client/)
+[![Snyk](https://snyk.io/test/github/infobip/infobip-api-python-client/badge.svg)](https://snyk.io/test/github/infobip/infobip-api-python-client)
 [![MIT License](https://badgen.net/github/license/infobip/infobip-api-python-client)](https://opensource.org/licenses/MIT)
 
 This is a Python package for Infobip API and you can use it as a dependency to add [Infobip APIs][apidocs] to your application.
@@ -12,7 +13,7 @@ We use [OpenAPI Generator](https://openapi-generator.tech/) to generate the pack
 
 
 #### Table of contents:
-* [API documentation](#documentation)
+* [API documentation](#api-documentation)
 * [General Info](#general-info)
 * [Installation](#installation)
 * [Quickstart](#quickstart)
@@ -23,19 +24,19 @@ We use [OpenAPI Generator](https://openapi-generator.tech/) to generate the pack
 Detailed documentation about Infobip API can be found here. The current version of this library includes this subset of Infobip products:
 
 * [SMS](https://www.infobip.com/docs/api/channels/sms)
-  * [SMS Messaging](https://www.infobip.com/docs/api/channels/sms/sms-messaging)
-  * [2FA](https://www.infobip.com/docs/api/channels/sms/2fa)
+* [2FA](https://www.infobip.com/docs/api/platform/2fa)
 * [Voice](https://www.infobip.com/docs/api/channels/voice)
-  * [Calls](https://www.infobip.com/docs/api/channels/voice/calls)
-  * [Click To Call](https://www.infobip.com/docs/api/channels/voice/click-to-call)
-  * [Call Routing](https://www.infobip.com/docs/api/channels/voice/routing)
+* [Moments](https://www.infobip.com/docs/api/customer-engagement/moments).
+* [Email](https://www.infobip.com/docs/api/channels/email)
+* [Viber](https://www.infobip.com/docs/api/channels/viber)
+* [Messages API](https://www.infobip.com/docs/api/platform/messages-api)
 
 ## General Info
 For `infobip-api-python-client` versioning we use [Semantic Versioning][semver] scheme.
 
 Published under [MIT License][license].
 
-Python 3.7 is minimum supported version by this library.
+Python 3.9 is minimum supported version by this library.
 
 ## Installation
 Pull the library by using the following command:
@@ -56,8 +57,7 @@ To see your base URL, log in to the [Infobip API Resource][apidocs] hub with you
 
     client_config = Configuration(
         host="<YOUR_BASE_URL>",
-        api_key={"APIKeyHeader": "<YOUR_API_KEY>"},
-        api_key_prefix={"APIKeyHeader": "<YOUR_API_PREFIX>"},
+        api_key="<YOUR_API_KEY>",
     )
 ```
 
@@ -74,26 +74,26 @@ Now you are ready use the API.
 Here's a basic example of sending the SMS message.
 
 ```python
-    from infobip_api_client.models import SmsAdvancedTextualRequest, SmsTextualMessage, SmsDestination, SmsResponse
+    from infobip_api_client.models import SmsRequest, SmsMessage, SmsMessageContent, SmsTextContent, SmsDestination, SmsResponse
     from infobip_api_client.api.sms_api import SmsApi
 
-    sms_request = SmsAdvancedTextualRequest(
+    sms_request = SmsRequest(
         messages=[
-            SmsTextualMessage(
+            SmsMessage(
                 destinations=[
                     SmsDestination(
                         to="41793026727",
                     ),
                 ],
-                _from="SMSInfo",
-                text="This is a dummy SMS message sent using Python library",
+                sender="InfoSMS",
+                content=SmsMessageContent(actual_instance=SmsTextContent(text="This is a dummy SMS message sent using Python library"))
             )
         ]
     )
 
     api_instance = SmsApi(api_client)
 
-    api_response: SmsResponse = api_instance.send_sms_message(sms_advanced_textual_request=sms_request)
+    api_response: SmsResponse = api_instance.send_sms_messages(sms_request=sms_request)
     print(api_response)
 ```
 
@@ -102,7 +102,7 @@ To make your code more robust send the message in try block and handle the `ApiE
     from infobip_api_client.exceptions import ApiException
 
     try:
-        api_response: SmsResponse = api_instance.send_sms_message(sms_advanced_textual_request=sms_request)
+        api_response: SmsResponse = api_instance.send_sms_messages(sms_request=sms_request)
     except ApiException as ex:
         print("Error occurred while trying to send SMS message.")
 ```
@@ -110,7 +110,7 @@ To make your code more robust send the message in try block and handle the `ApiE
 In case of failure you can inspect the `ApiException` for more information.
 ```python
     try:
-        api_response: SmsResponse = api_instance.send_sms_message(sms_advanced_textual_request=sms_request)
+        api_response: SmsResponse = api_instance.send_sms_messages(sms_request=sms_request)
     except ApiException as ex:
         print("Error occurred while trying to send SMS message.")
         print("Error status: %s\n" % ex.status)
@@ -127,7 +127,7 @@ Bulk ID will be received only when you send a message to more than one destinati
 ```
 
 #### Receive sent SMS report
-For each SMS that you send out, we can send you a message delivery report in real time. All you need to do is specify your endpoint when sending SMS in `notify_url` field of `SmsTextualMessage`, or subscribe for reports by contacting our support team.
+All you need to do is specify your endpoint when sending SMS in the `webhooks.delivery.url` field of your request, or subscribe for reports by contacting our support team at support@infobip.com.
 e.g. `https://{yourDomain}/delivery-reports`
 
 Example of webhook implementation using Flask:
@@ -144,7 +144,7 @@ Example of webhook implementation using Flask:
         for result in delivery_results.results:
             print("message {0} sent at {1}".format(result.message_id, result.sent_at))
 ```
-If you prefer to use your own serializer, please pay attention to the supported [date format](https://www.infobip.com/docs/essentials/integration-best-practices#date-formats).
+If you prefer to use your own serializer, please pay attention to the supported [date format](https://www.infobip.com/docs/essentials/api-essentials/integration-best-practices#date-formats-backward-compatibility).
 
 #### Fetching delivery reports
 If you are for any reason unable to receive real time delivery reports on your endpoint, you can use `message_id` or `bulk_id` to fetch them.
@@ -190,20 +190,34 @@ Example of webhook implementation using Flask:
 
 ```
 #### Two-Factor Authentication (2FA)
-For 2FA quick start guide please check [these examples](two-factor-authentication.md).
+For the 2FA quick start guide please check [these examples](docs/two-factor-authentication.md).
 
 #### Calls
-For Calls quick start guide please check [these_examples](calls.md)
+For the Calls quick start guide please check [these examples](docs/calls.md)
+
+#### Email
+For Email quick start guide, view [these examples](docs/email.md).
+
+#### Moments
+For Moments quick start guide, view [these examples](docs/moments.md).
+
+## Versioning
+
+This project follows a pragmatic Semantic Versioning approach.
+For full details on how versions are managed, please see our [Versioning guide][versioning].
 
 ## Ask for help
 
-Feel free to open issues on the repository for any issue or feature request. As per pull requests, for details check the `CONTRIBUTING` [file][contributing] related to it - in short, we will not merge any pull requests, this code is auto-generated.
+Feel free to open an issue on the repository if you see any problem or want to request a feature.
 
-If it's something that requires our imminent attention feel free to contact us @ [support@infobip.com](mailto:support@infobip.com).
+If you want to contribute to this library in any way, please follow the guidelines in [CONTRIBUTING][contributing] file.
+
+For anything that requires our immediate attention, contact us @ [support@infobip.com](mailto:support@infobip.com).
 
 [apidocs]: https://www.infobip.com/docs/api
-[freetrial]: https://www.infobip.com/docs/freetrial
+[freetrial]: https://www.infobip.com/docs/essentials/getting-started/free-trial
 [signup]: https://www.infobip.com/signup
 [semver]: https://semver.org
 [license]: LICENSE
 [contributing]: CONTRIBUTING.md
+[versioning]: VERSIONING.md
